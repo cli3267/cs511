@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - TextSwap",
+            "request": "launch",
+            "mainClass": "TextSwap",
+            "projectName": "hw1_7a6df43c"
+        }
+    ]
+}
