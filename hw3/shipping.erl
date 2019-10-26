@@ -23,21 +23,41 @@ get_port(Shipping_State, Port_ID) ->
         Shipping_State#shipping_state.ports
     ).
 
-% get_occupied_docks(Shipping_State, Port_ID) ->
-%     io:format("Implement me!!"), filtermap
-%     error.
+get_occupied_docks(Shipping_State, Port_ID) ->
+    lists:filtermap(
+        fun(X) ->
+            case X of 
+                {Port_ID, D, _} -> {true, D};
+                _ -> false
+            end
+        end,
+        Shipping_State#shipping_state.ship_locations
+    ).
+%port, dock, ship
+get_ship_location(Shipping_State, Ship_ID) ->
+   {X,Y,_} = lists:keyfind(
+        Ship_ID,
+        3,
+        Shipping_State#shipping_state.ship_locations
+    ),
+    {X,Y}.
 
-% get_ship_location(Shipping_State, Ship_ID) ->
-%     io:format("Implement me!!"),
-%     error.
+get_container_weight(Shipping_State, Container_IDs) ->
+    %%is not done
+    lists:map(
+        fun(X) ->
+            case lists:member(X, Container_IDs) of
+                true -> io:format(X, Container_IDs);
+                _ -> 0
+            end
+    end, Shipping_State#shipping_state.containers).
 
-% get_container_weight(Shipping_State, Container_IDs) ->
-%     io:format("Implement me!!"),
-%     error.
-
+%% I think I have the logical right in this one, but cannot check until get_container weight
 % get_ship_weight(Shipping_State, Ship_ID) ->
-%     io:format("Implement me!!"),
-%     error.
+%     case maps:find(Ship_ID, Shipping_State#shipping_state.ship_inventory) of
+%         {ok,X} -> get_container_weight(Shipping_State, X);
+%         error -> error
+%     end.
 
 % load_ship(Shipping_State, Ship_ID, Container_IDs) ->
 %     io:format("Implement me!!"),
