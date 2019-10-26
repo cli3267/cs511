@@ -47,8 +47,8 @@ get_container_weight(Shipping_State, Container_IDs) ->
     lists:map(
         fun(X) ->
             case lists:member(X, Container_IDs) of
-                true -> io:format(X, Container_IDs);
-                _ -> 0
+                true -> io:format(X);
+                false -> io:format('0')
             end
     end, Shipping_State#shipping_state.containers).
 
