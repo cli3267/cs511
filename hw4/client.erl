@@ -105,6 +105,8 @@ loop(State, Request, Ref) ->
 	    {unhandled_request, State}
     end.
 
+%% -record(cl_st, {gui, nick, con_ch}).
+%% -record(serv_st, {nicks, registrations, chatrooms}).
 %% executes `/join` protocol from client perspective
 do_join(State, Ref, ChatName) ->
     io:format("client:do_join(...): IMPLEMENT ME~n"),
@@ -140,7 +142,7 @@ do_new_nick(State, Ref, NewNick) ->
 					io:format("Nickname is taken"),
 					{err_nick_used, #cl_st{
 						gui = State#cl_st.gui,
-						nick = NewNick, 
+						nick = OrgNick, 
 						con_ch = State#cl_st.con_ch
 					}}
 			end
