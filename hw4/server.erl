@@ -60,9 +60,10 @@ loop(State) ->
     end.
 
 %% executes join protocol from server perspective
-do_join(ChatName, ClientPID, Ref, State) ->
-    io:format("server:do_join(...): IMPLEMENT ME~n"),
-    State.
+%% ChatName, ClientPID, Ref, State original arguments but I changed them around based on my client call
+do_join(State, Ref, ClientPID, ChatName) ->
+    ChatRms = maps:keys(State#serv_st.chatrooms),
+	case
 
 %% executes leave protocol from server perspective
 do_leave(ChatName, ClientPID, Ref, State) ->

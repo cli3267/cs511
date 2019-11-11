@@ -109,8 +109,21 @@ loop(State, Request, Ref) ->
 %% -record(serv_st, {nicks, registrations, chatrooms}).
 %% executes `/join` protocol from client perspective
 do_join(State, Ref, ChatName) ->
-    io:format("client:do_join(...): IMPLEMENT ME~n"),
-    {{dummy_target, dummy_response}, State}.
+	ChatRms = maps:keys(State#cl_st.con_ch),
+	case lists:member(ChatName, ChatRms) of
+		true ->
+			{err, #cl_st{
+				gui = State#cl_st.gui,
+				nick = State#cl_st.nick,
+				con_ch = State#cl_st.con_ch
+			}};
+		false ->
+			Server = whereis(server),
+			Server!{self(), Ref, join, ChatName},
+			receive
+				%%
+			end
+	end.
 
 %% executes `/leave` protocol from client perspective
 do_leave(State, Ref, ChatName) ->
