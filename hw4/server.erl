@@ -63,7 +63,25 @@ loop(State) ->
 %% ChatName, ClientPID, Ref, State original arguments but I changed them around based on my client call
 do_join(State, Ref, ClientPID, ChatName) ->
     ChatRms = maps:keys(State#serv_st.chatrooms),
-	case
+	case lists:member(ChatName, ChatRms) of
+		true -> %%if the ChatName already exists
+			ExistChatRm = maps:get(ChatName, State#serv_st.chatrooms),
+			UpdateChatRms = ExistChatRm,
+			UpdateRegistration = maps:update(),
+		false -> %% if the ChatName does not exist
+			NewChatRm = spawn(chatroom, start_chatroom, [ChatName]),
+			UpdateChatRms = maps:put(ChatName, NewChatRm, State#serv_st.chatrooms), %updates chatrooms
+			UpdateRegistration = maps:put(ChatName, [ClientPID], Registrations) %puts the client into registrations
+	end,
+
+	%send message to the chatroom to let the client join the chatroom
+	ClientPID!{self(), Ref,register, ClientPID, ClientNick},
+
+	#serv_st{
+		nicks = State#serv_st.nicks,
+		registrations = UpdateRegistration, %change
+		chatrooms = UpdateChatRms
+	}
 
 %% executes leave protocol from server perspective
 do_leave(ChatName, ClientPID, Ref, State) ->
