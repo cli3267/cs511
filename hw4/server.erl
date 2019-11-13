@@ -67,7 +67,7 @@ do_join(State, Ref, ClientPID, ChatName) ->
 	io:format("ChatRooms Here = ~p~n", [ChatRms]),
 	case lists:member(ChatName, ChatRms) of
 		true -> %%if the ChatName already exists
-			UpdateChatRms = maps:get(ChatName, State#serv_st.chatrooms),
+			UpdateChatRms = State#serv_st.chatrooms,
 			UpdateRegistration = maps:update(ChatName, ClientPID, State#serv_st.registrations),
 			io:format("ChatRms = ~p~n", [UpdateChatRms]),
 			io:format("Registration = ~p~n", [UpdateRegistration]);
