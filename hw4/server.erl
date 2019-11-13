@@ -39,7 +39,7 @@ loop(State) ->
 	    loop(NewState);
 	%% client requests to join a chat
 	{ClientPID, Ref, join, ChatName} ->
-	    NewState = do_join(ChatName, ClientPID, Ref, State),
+	    NewState = do_join(State, Ref, ClientPID, ChatName),
 	    loop(NewState);
 	%% client requests to join a chat
 	{ClientPID, Ref, leave, ChatName} ->
@@ -60,28 +60,37 @@ loop(State) ->
     end.
 
 %% executes join protocol from server perspective
+%% cannot have another user join a chatroom that is already existed
 %% ChatName, ClientPID, Ref, State original arguments but I changed them around based on my client call
 do_join(State, Ref, ClientPID, ChatName) ->
     ChatRms = maps:keys(State#serv_st.chatrooms),
+	io:format("ChatRooms Here = ~p~n", [ChatRms]),
 	case lists:member(ChatName, ChatRms) of
 		true -> %%if the ChatName already exists
-			ExistChatRm = maps:get(ChatName, State#serv_st.chatrooms),
-			UpdateChatRms = ExistChatRm,
-			UpdateRegistration = maps:update(),
+			UpdateChatRms = maps:get(ChatName, State#serv_st.chatrooms),
+			UpdateRegistration = maps:update(ChatName, ClientPID, State#serv_st.registrations),
+			io:format("ChatRms = ~p~n", [UpdateChatRms]),
+			io:format("Registration = ~p~n", [UpdateRegistration]);
 		false -> %% if the ChatName does not exist
 			NewChatRm = spawn(chatroom, start_chatroom, [ChatName]),
 			UpdateChatRms = maps:put(ChatName, NewChatRm, State#serv_st.chatrooms), %updates chatrooms
-			UpdateRegistration = maps:put(ChatName, [ClientPID], Registrations) %puts the client into registrations
+			UpdateRegistration = maps:put(ChatName, [ClientPID], State#serv_st.registrations), %puts the client into registrations
+			io:format("ChatRms = ~p~n", [UpdateChatRms]),
+			io:format("Registration = ~p~n", [UpdateRegistration])
 	end,
+	{ok, ChatRmValue} = maps:find(ChatName, UpdateChatRms),
+	{ok, NickNms} = maps:find(ClientPID, State#serv_st.nicks),
+	io:format("ChatRmValues = ~p~n", [ChatRmValue]),
+	io:format("NickNms = ~p~n", [NickNms]),
 
 	%send message to the chatroom to let the client join the chatroom
-	ClientPID!{self(), Ref,register, ClientPID, ClientNick},
+	ChatRmValue!{self(), Ref, register, ClientPID, NickNms},
 
 	#serv_st{
 		nicks = State#serv_st.nicks,
-		registrations = UpdateRegistration, %change
+		registrations = UpdateRegistration,
 		chatrooms = UpdateChatRms
-	}
+	}.
 
 %% executes leave protocol from server perspective
 do_leave(ChatName, ClientPID, Ref, State) ->

@@ -121,7 +121,14 @@ do_join(State, Ref, ChatName) ->
 			Server = whereis(server),
 			Server!{self(), Ref, join, ChatName},
 			receive
-				%%
+				{Chatroom, Ref, connect, History} ->
+					UpdateConCh = maps:put(ChatName, Chatroom, State#cl_st.con_ch),
+					{History, #cl_st{
+						gui = State#cl_st.gui,
+						nick = State#cl_st.nick,
+						con_ch = UpdateConCh
+					} 
+					}
 			end
 	end.
 
