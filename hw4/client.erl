@@ -111,31 +111,51 @@ loop(State, Request, Ref) ->
 do_join(State, Ref, ChatName) ->
     ChatRms = maps:keys(State#cl_st.con_ch),
     case lists:member(ChatName, ChatRms) of
-	true ->
-	    {err, #cl_st{
-		     gui = State#cl_st.gui,
-		     nick = State#cl_st.nick,
-		     con_ch = State#cl_st.con_ch
-		    }};
-	false ->
-	    Server = whereis(server),
-	    Server!{self(), Ref, join, ChatName},
-	    receive
-		{Chatroom, Ref, connect, History} ->
-		    UpdateConCh = maps:put(ChatName, Chatroom, State#cl_st.con_ch),
-		    {History, #cl_st{
-				 gui = State#cl_st.gui,
-				 nick = State#cl_st.nick,
-				 con_ch = UpdateConCh
-				} 
-		    }
-	    end
+		true ->
+			{err, #cl_st{
+				gui = State#cl_st.gui,
+				nick = State#cl_st.nick,
+				con_ch = State#cl_st.con_ch
+				}};
+		false ->
+			Server = whereis(server),
+			Server!{self(), Ref, join, ChatName},
+			receive
+				{Chatroom, Ref, connect, History} ->
+					UpdateConCh = maps:put(ChatName, Chatroom, State#cl_st.con_ch),
+					{History, #cl_st{
+						gui = State#cl_st.gui,
+						nick = State#cl_st.nick,
+						con_ch = UpdateConCh
+						} 
+					}
+			end
     end.
 
 %% executes `/leave` protocol from client perspective
 do_leave(State, Ref, ChatName) ->
-    io:format("client:do_leave(...): IMPLEMENT ME~n"),
-    {{dummy_target, dummy_response}, State}.
+   ChatRms = maps:keys(State#cl_st.con_ch),
+   case lists:member(ChatName, ChatRms) of
+		false ->
+			{err,#cl_st{
+				gui = State#cl_st.gui,
+				nick = State#cl_st.nick,
+				con_ch = State#cl_st.con_ch
+			}};
+		true ->
+			Server = whereis(server),
+			Server!{self(), Ref, leave, ChatName},
+			receive
+				{Server, Ref, ack_leave} ->
+					UpdateConCh = maps:remove(ChatName, State#cl_st.con_ch),
+					{ok, #cl_st{
+							gui = State#cl_st.gui,
+							nick = State#cl_st.nick,
+							con_ch = UpdateConCh
+						}
+					}
+			end
+	end.
 
 %% executes `/nick` protocol from client perspective
 do_new_nick(State, Ref, NewNick) ->

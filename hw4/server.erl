@@ -43,7 +43,7 @@ loop(State) ->
 	    loop(NewState);
 	%% client requests to join a chat
 	{ClientPID, Ref, leave, ChatName} ->
-	    NewState = do_leave(ChatName, ClientPID, Ref, State),
+	    NewState = do_leave(State, Ref, ClientPID, ChatName),
 	    loop(NewState);
 	%% client requests to register a new nickname
 	{ClientPID, Ref, nick, NewNick} ->
@@ -99,9 +99,24 @@ do_join(State, Ref, ClientPID, ChatName) ->
       }.
 
 %% executes leave protocol from server perspective
-do_leave(ChatName, ClientPID, Ref, State) ->
-    io:format("server:do_leave(...): IMPLEMENT ME~n"),
-    State.
+%% ChatName, ClientPID, Ref, State
+do_leave(State, Ref, ClientPID, ChatName) ->
+	io:format("Leaving... ~n"),
+	ChatRmPID = maps:get(ChatName, State#serv_st.chatrooms),
+	io:format("Chatroom = ~p~n", [ChatRmPID]),
+	io:format("Registrations = ~p~n", [maps:values(State#serv_st.registrations)]),
+	ListClientPID = maps:values(State#serv_st.registrations),
+	RegistrationList = lists:delete(ClientPID, ListClientPID),
+    UpdateRegistration = maps:update(ChatName,
+					     RegistrationList,
+					     State#serv_st.registrations),
+	ChatRmPID!{self(), Ref, unregister, ClientPID},
+	ClientPID!{self(), Ref, ack_leave},
+	#serv_st{
+       nicks = State#serv_st.nicks,
+       registrations = UpdateRegistration,
+       chatrooms = State#serv_st.chatrooms
+    }.
 
 %% -record(serv_st, {nicks, registrations, chatrooms}).
 %%registrations: a map from a chatroom’s name (string) as the key to a list of the client processes’ PIDs of clients registered in that chatroom.
