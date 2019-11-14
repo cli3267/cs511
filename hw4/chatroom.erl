@@ -66,5 +66,4 @@ do_update_nick(State, ClientPID, NewNick) ->
 %% This function should update all clients in chatroom with new message
 %% (read assignment specs for details)
 do_propegate_message(State, Ref, ClientPID, Message) ->
-    io:format("chatroom:do_propegate_message(...): IMPLEMENT ME~n"),
-    State.
+    ClientPID!{self(), Ref, ack_msg}.
