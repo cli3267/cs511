@@ -109,28 +109,28 @@ loop(State, Request, Ref) ->
 %% -record(serv_st, {nicks, registrations, chatrooms}).
 %% executes `/join` protocol from client perspective
 do_join(State, Ref, ChatName) ->
-	ChatRms = maps:keys(State#cl_st.con_ch),
-	case lists:member(ChatName, ChatRms) of
-		true ->
-			{err, #cl_st{
-				gui = State#cl_st.gui,
-				nick = State#cl_st.nick,
-				con_ch = State#cl_st.con_ch
-			}};
-		false ->
-			Server = whereis(server),
-			Server!{self(), Ref, join, ChatName},
-			receive
-				{Chatroom, Ref, connect, History} ->
-					UpdateConCh = maps:put(ChatName, Chatroom, State#cl_st.con_ch),
-					{History, #cl_st{
-						gui = State#cl_st.gui,
-						nick = State#cl_st.nick,
-						con_ch = UpdateConCh
-					} 
-					}
-			end
-	end.
+    ChatRms = maps:keys(State#cl_st.con_ch),
+    case lists:member(ChatName, ChatRms) of
+	true ->
+	    {err, #cl_st{
+		     gui = State#cl_st.gui,
+		     nick = State#cl_st.nick,
+		     con_ch = State#cl_st.con_ch
+		    }};
+	false ->
+	    Server = whereis(server),
+	    Server!{self(), Ref, join, ChatName},
+	    receive
+		{Chatroom, Ref, connect, History} ->
+		    UpdateConCh = maps:put(ChatName, Chatroom, State#cl_st.con_ch),
+		    {History, #cl_st{
+				 gui = State#cl_st.gui,
+				 nick = State#cl_st.nick,
+				 con_ch = UpdateConCh
+				} 
+		    }
+	    end
+    end.
 
 %% executes `/leave` protocol from client perspective
 do_leave(State, Ref, ChatName) ->
@@ -139,34 +139,34 @@ do_leave(State, Ref, ChatName) ->
 
 %% executes `/nick` protocol from client perspective
 do_new_nick(State, Ref, NewNick) ->
-	OrgNick = State#cl_st.nick,
-	if OrgNick =:= NewNick ->
-		{err_same, #cl_st{
-			gui = State#cl_st.gui,
-			nick = OrgNick, 
-			con_ch = State#cl_st.con_ch
-		}};
-	%% true is the else part
-		true -> 
-			Server = whereis(server),
-			Server!{self(), Ref, nick, NewNick},
-			receive
-				{Server, Ref, ok_nick} ->
-					io:format("Nickname is not taken, but now is taken by you :)"),
-					{ok_nick, #cl_st{
-						gui = State#cl_st.gui,
-						nick = NewNick, 
-						con_ch = State#cl_st.con_ch
-					}};
-				{Server, Ref, err_nick_used} ->
-					io:format("Nickname is taken"),
-					{err_nick_used, #cl_st{
-						gui = State#cl_st.gui,
-						nick = OrgNick, 
-						con_ch = State#cl_st.con_ch
-					}}
-			end
-	end.
+    OrgNick = State#cl_st.nick,
+    if OrgNick =:= NewNick ->
+	    {err_same, #cl_st{
+			  gui = State#cl_st.gui,
+			  nick = OrgNick, 
+			  con_ch = State#cl_st.con_ch
+			 }};
+       %% true is the else part
+       true -> 
+	    Server = whereis(server),
+	    Server!{self(), Ref, nick, NewNick},
+	    receive
+		{Server, Ref, ok_nick} ->
+		    io:format("Nickname is not taken, but now is taken by you :)"),
+		    {ok_nick, #cl_st{
+				 gui = State#cl_st.gui,
+				 nick = NewNick, 
+				 con_ch = State#cl_st.con_ch
+				}};
+		{Server, Ref, err_nick_used} ->
+		    io:format("Nickname is taken"),
+		    {err_nick_used, #cl_st{
+				       gui = State#cl_st.gui,
+				       nick = OrgNick, 
+				       con_ch = State#cl_st.con_ch
+				      }}
+	    end
+    end.
 
 %% executes send message protocol from client perspective
 do_msg_send(State, Ref, ChatName, Message) ->

@@ -35,17 +35,17 @@ loop(State) ->
 	    {TEST_PID, get_state} ->
 		TEST_PID!{get_state, State},
 		loop(State)
-end,
+	end,
     loop(NewState).
 
 %% This function should register a new client to this chatroom
 do_register(State, Ref, ClientPID, ClientNick) ->
+    ClientPID!{self(), Ref, connect, State#chat_st.history},
     #chat_st{
-		name = State#chat_st.name,
-		registrations = maps:put(ClientPID, ClientNick, State#chat_st.registrations),
-		history = State#chat_st.history
-	},
-	ClientPID!{self(), Ref, connect, State#chat_st.history}.
+       name = State#chat_st.name,
+       registrations = maps:put(ClientPID, ClientNick, State#chat_st.registrations),
+       history = State#chat_st.history
+      }.
 
 %% This function should unregister a client from this chatroom
 do_unregister(State, ClientPID) ->
@@ -55,10 +55,10 @@ do_unregister(State, ClientPID) ->
 %% This function should update the nickname of specified client.
 do_update_nick(State, ClientPID, NewNick) ->
     #chat_st{
-		name = State#chat_st.name, 
-		registrations = maps:update(ClientPID, NewNick, State#chat_st.registrations), 
-		history = State#chat_st.history
-	}.
+       name = State#chat_st.name, 
+       registrations = maps:update(ClientPID, NewNick, State#chat_st.registrations), 
+       history = State#chat_st.history
+      }.
 
 %% This function should update all clients in chatroom with new message
 %% (read assignment specs for details)
