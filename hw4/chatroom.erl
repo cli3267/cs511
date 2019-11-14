@@ -63,7 +63,27 @@ do_update_nick(State, ClientPID, NewNick) ->
        history = State#chat_st.history
       }.
 
+%% name: the name (string) of the chatroom.
+%% registrations: a map from a client’s PID to a client’s nickname (string). The map represents all clients registered in that chatroom.
+%% history: chat history since the beginning of that chatroom. It should be represented as a list of tuples, where each tuple is {Client nickname, Message}, both of which are strings.
 %% This function should update all clients in chatroom with new message
 %% (read assignment specs for details)
 do_propegate_message(State, Ref, ClientPID, Message) ->
-    ClientPID!{self(), Ref, ack_msg}.
+    ClientPID!{self(), Ref, ack_msg},
+    ClientNick = maps:get(ClientPID, State#chat_st.registrations),
+    io:format("AllClients=~p~n", [State#chat_st.registrations]),
+    ClientsExceptSendClient = maps:keys(maps:remove(ClientPID, State#chat_st.registrations)),
+    io:format("Clients without Sending Client = ~p~n", [ClientsExceptSendClient]),
+    lists:foreach(
+        fun(X) -> 
+            io:format("Here is X: ~p~n", [X]),
+            X!{request, self(), Ref, {incoming_msg, ClientNick, State#chat_st.name, Message}} 
+        end, 
+    ClientsExceptSendClient),
+    UpdatedHistory = lists:append([{ClientNick, Message}], State#chat_st.history),
+    io:format("Updated History=~p~n", [UpdatedHistory]),
+    #chat_st{
+        name = State#chat_st.name,
+        registrations = State#chat_st.registrations,
+        history = UpdatedHistory
+    }.

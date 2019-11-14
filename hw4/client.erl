@@ -34,6 +34,7 @@ main(InitialState) ->
 listen(State) ->
     receive
         {request, From, Ref, Request} ->
+			io:format("Request: ~p~n", [Request]),
 	    %% the loop method will return a response as well as an updated
 	    %% state to pass along to the next cycle
             {Response, NextState} = loop(State, Request, Ref),
@@ -194,12 +195,14 @@ do_msg_send(State, Ref, ChatName, Message) ->
 	ChatroomPID!{self(), Ref, message, Message},
 	receive
 		{ChatroomPID, Ref, ack_msg} ->
-			io:format("message received"),
-			{{msg_sent, State#cl_st.nick}, #cl_st{
+			io:format("message received~n"),
+			{
+				{msg_sent, State#cl_st.nick}, #cl_st{
 				gui = State#cl_st.gui,
 				nick = State#cl_st.nick,
 				con_ch = State#cl_st.con_ch
-			}}
+				}
+			}
 	end.
 
 %% executes new incoming message protocol from client perspective
