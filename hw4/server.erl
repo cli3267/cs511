@@ -112,6 +112,7 @@ do_leave(State, Ref, ClientPID, ChatName) ->
 					     State#serv_st.registrations),
 	ChatRmPID!{self(), Ref, unregister, ClientPID},
 	ClientPID!{self(), Ref, ack_leave},
+	io:format("Left Chatroom"),
 	#serv_st{
        nicks = State#serv_st.nicks,
        registrations = UpdateRegistration,
