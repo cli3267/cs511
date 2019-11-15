@@ -89,7 +89,7 @@ do_join(State, Ref, ClientPID, ChatName) ->
     io:format("ChatRmValues = ~p~n", [ChatRmValue]),
     io:format("NickNms = ~p~n", [NickNm]),
 
-						%send message to the chatroom to let the client join the chatroom
+	%send message to the chatroom to let the client join the chatroom
     ChatRmValue!{self(), Ref, register, ClientPID, NickNm},
     io:format("FLAG~n"),
     #serv_st{

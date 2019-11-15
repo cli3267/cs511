@@ -80,7 +80,7 @@ do_propegate_message(State, Ref, ClientPID, Message) ->
             X!{request, self(), Ref, {incoming_msg, ClientNick, State#chat_st.name, Message}} 
         end, 
     ClientsExceptSendClient),
-    UpdatedHistory = lists:append([{ClientNick, Message}], State#chat_st.history),
+    UpdatedHistory = lists:append(State#chat_st.history,[{ClientNick, Message}]),
     io:format("Updated History=~p~n", [UpdatedHistory]),
     #chat_st{
         name = State#chat_st.name,
