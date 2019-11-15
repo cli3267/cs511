@@ -34,7 +34,7 @@ main(InitialState) ->
 listen(State) ->
     receive
         {request, From, Ref, Request} ->
-			io:format("Request: ~p~n", [Request]),
+	    io:format("Request: ~p~n", [Request]),
 	    %% the loop method will return a response as well as an updated
 	    %% state to pass along to the next cycle
             {Response, NextState} = loop(State, Request, Ref),
@@ -81,7 +81,7 @@ loop(State, Request, Ref) ->
 
 	%% GUI requests the nickname of client
 	whoami ->
-	    {{dummy_target, dummy_response}, State};
+	    {State#cl_st.nick, State};
 
 	%% GUI requests to update nickname to Nick
 	{nick, Nick} ->
