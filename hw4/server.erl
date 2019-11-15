@@ -165,5 +165,14 @@ do_new_nick(State, Ref, ClientPID, NewNick) ->
 
 %% executes client quit protocol from server perspective
 do_client_quit(State, Ref, ClientPID) ->
-    io:format("server:do_client_quit(...): IMPLEMENT ME~n"),
-    State.
+    UpdateNicks = maps:remove(ClientPID, State#serv_st.nicks),
+	UpdateRegistration = maps:filter(
+		fun(K,V) ->
+	),
+	%%%,
+	ClientPID!{self(), Ref, ack_quit},
+	#serv_st{
+		nicks = UpdateNicks,
+		registrations = UpdateRegistration,
+		chatrooms = UpdatedChatroom
+	}.
