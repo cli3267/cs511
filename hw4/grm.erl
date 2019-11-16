@@ -7,7 +7,7 @@
 
 ff({_,_,Content}) -> Content.
 
--file("/usr/local/lib/erlang/lib/parsetools-2.1.4/include/yeccpre.hrl", 0).
+-file("/usr/lib/erlang/lib/parsetools-2.1.1/include/yeccpre.hrl", 0).
 %%
 %% %CopyrightBegin%
 %%
@@ -426,15 +426,12 @@ yeccpars2_30(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_30_(Stack),
  yeccgoto_ipnumber(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
--dialyzer({nowarn_function, yeccgoto_ipnumber/7}).
 yeccgoto_ipnumber(18, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_20(20, Cat, Ss, Stack, T, Ts, Tzr).
 
--dialyzer({nowarn_function, yeccgoto_line/7}).
 yeccgoto_line(0, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_1(1, Cat, Ss, Stack, T, Ts, Tzr).
 
--dialyzer({nowarn_function, yeccgoto_unit/7}).
 yeccgoto_unit(18, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_19(19, Cat, Ss, Stack, T, Ts, Tzr);
 yeccgoto_unit(25, Cat, Ss, Stack, T, Ts, Tzr) ->

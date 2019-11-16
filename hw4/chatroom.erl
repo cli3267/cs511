@@ -50,10 +50,10 @@ do_register(State, Ref, ClientPID, ClientNick) ->
 %% This function should unregister a client from this chatroom
 do_unregister(State, ClientPID) ->
     #chat_st{
-        name = State#chat_st.name,
-        registrations = maps:remove(ClientPID, State#chat_st.registrations),
-        history = State#chat_st.history
-    }.
+       name = State#chat_st.name,
+       registrations = maps:remove(ClientPID, State#chat_st.registrations),
+       history = State#chat_st.history
+      }.
 
 %% This function should update the nickname of specified client.
 do_update_nick(State, ClientPID, NewNick) ->
@@ -75,15 +75,15 @@ do_propegate_message(State, Ref, ClientPID, Message) ->
     ClientsExceptSendClient = maps:keys(maps:remove(ClientPID, State#chat_st.registrations)),
     io:format("Clients without Sending Client = ~p~n", [ClientsExceptSendClient]),
     lists:foreach(
-        fun(X) -> 
-            io:format("Here is X: ~p~n", [X]),
-            X!{request, self(), Ref, {incoming_msg, ClientNick, State#chat_st.name, Message}} 
-        end, 
-    ClientsExceptSendClient),
+      fun(X) -> 
+	      io:format("Here is X: ~p~n", [X]),
+	      X!{request, self(), Ref, {incoming_msg, ClientNick, State#chat_st.name, Message}} 
+      end, 
+      ClientsExceptSendClient),
     UpdatedHistory = lists:append(State#chat_st.history,[{ClientNick, Message}]),
     io:format("Updated History=~p~n", [UpdatedHistory]),
     #chat_st{
-        name = State#chat_st.name,
-        registrations = State#chat_st.registrations,
-        history = UpdatedHistory
-    }.
+       name = State#chat_st.name,
+       registrations = State#chat_st.registrations,
+       history = UpdatedHistory
+      }.
