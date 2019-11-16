@@ -88,10 +88,10 @@ do_join(State, Ref, ClientPID, ChatName) ->
     {ok, NickNm} = maps:find(ClientPID, State#serv_st.nicks),
     io:format("ChatRmValues = ~p~n", [ChatRmValue]),
     io:format("NickNms = ~p~n", [NickNm]),
-
+    
 						%send message to the chatroom to let the client join the chatroom
     ChatRmValue!{self(), Ref, register, ClientPID, NickNm},
-    io:format("FLAG~n"),
+    
     #serv_st{
        nicks = State#serv_st.nicks,
        registrations = UpdateRegistration,
@@ -101,23 +101,23 @@ do_join(State, Ref, ClientPID, ChatName) ->
 %% executes leave protocol from server perspective
 %% ChatName, ClientPID, Ref, State
 do_leave(State, Ref, ClientPID, ChatName) ->
-	io:format("Leaving... ~n"),
-	ChatRmPID = maps:get(ChatName, State#serv_st.chatrooms),
-	io:format("Chatroom = ~p~n", [ChatRmPID]),
-	io:format("Registrations = ~p~n", [maps:values(State#serv_st.registrations)]),
-	ListClientPID = maps:values(State#serv_st.registrations),
-	RegistrationList = lists:delete(ClientPID, ListClientPID),
+    io:format("Leaving... ~n"),
+    ChatRmPID = maps:get(ChatName, State#serv_st.chatrooms),
+    io:format("Chatroom = ~p~n", [ChatRmPID]),
+    io:format("Registrations = ~p~n", [maps:values(State#serv_st.registrations)]),
+    ListClientPID = maps:values(State#serv_st.registrations),
+    RegistrationList = lists:delete(ClientPID, ListClientPID),
     UpdateRegistration = maps:update(ChatName,
-					     RegistrationList,
-					     State#serv_st.registrations),
-	ChatRmPID!{self(), Ref, unregister, ClientPID},
-	ClientPID!{self(), Ref, ack_leave},
-	io:format("Left Chatroom"),
-	#serv_st{
+				     RegistrationList,
+				     State#serv_st.registrations),
+    ChatRmPID!{self(), Ref, unregister, ClientPID},
+    ClientPID!{self(), Ref, ack_leave},
+    io:format("Left Chatroom"),
+    #serv_st{
        nicks = State#serv_st.nicks,
        registrations = UpdateRegistration,
        chatrooms = State#serv_st.chatrooms
-    }.
+      }.
 
 %% -record(serv_st, {nicks, registrations, chatrooms}).
 %%registrations: a map from a chatroom’s name (string) as the key to a list of the client processes’ PIDs of clients registered in that chatroom.
@@ -133,26 +133,21 @@ do_new_nick(State, Ref, ClientPID, NewNick) ->
 	    ClientPID!{self(), Ref, err_nick_used},
 	    State;
 	false ->
-
-						%look at all clinetPID connected chatrooms and update their chat rooms nicks accoring to pid to the new nick name
-						% might need for other chatrooms
-						%ChatRm = maps:filter(fun(_Nm, Clients) -> lists:member(ClientPID, Clients) end, State#serv_st.registrations),
-						%ChatRmPID = maps:filter(fun(Nm, _PID) -> list: member(Nm, maps:keys(ChatRm)) end, ChatRm),
-						%NewNicks = maps:map(fun(_Nm, PID) -> PID!{self(), Ref, update_nick, ClientPID, NewNick} end, ChatRmPID),
-	%maps:map(
-	%  fun(Chat_Name, List_ClientPID) ->
-	%	      case lists:member(ClientPID, List_ClientPID)  of
-	%		  True ->
-	%		      case maps:find(State#serv_st.chatrooms) of
-	%			  {ok, Chat_PID} ->
-	%			      Chat_PID !  {self(), Ref, update nick, ClientPID, NewNick};
-	%			  error ->
-	%			      chatRoomFUP
-	%		      end;
-	%		  False ->
-	%		      noChatFound
-	%	      end, State#serv_st.registrations),
-	%			       
+	    
+	    ChatNames = maps:filter(fun(_Nm, Clients) ->
+					    lists:member(ClientPID, Clients)
+				    end,
+				    State#serv_st.registrations),
+	    io:format("Chat Names to send updatenick to: ~p~n", [maps:keys(ChatNames)]),
+	    ChatPIDs = maps:filter(fun(Nm, _PID) -> 
+					   lists:member(Nm, maps:keys(ChatNames))
+				   end, State#serv_st.chatrooms),
+	    io:format("Chat PIDS: ~p~n", [maps:values(ChatPIDs)]),
+	    Catch = maps:map(fun(_,Chat_PID) ->
+				     io:format("Chat PID TO sEND TO: ~p~n", [Chat_PID]),
+				     Chat_PID!{self(), Ref, update_nick, ClientPID, NewNick},
+				     Chat_PID
+			     end, ChatPIDs),
 	    NewNicks = maps:update(ClientPID, NewNick, State#serv_st.nicks),
 	    ClientPID!{self(), Ref, ok_nick},
 	    io:format("NewNicks = ~p~n", [NewNicks]),
@@ -165,5 +160,33 @@ do_new_nick(State, Ref, ClientPID, NewNick) ->
 
 %% executes client quit protocol from server perspective
 do_client_quit(State, Ref, ClientPID) ->
-    io:format("server:do_client_quit(...): IMPLEMENT ME~n"),
-    State.
+    
+    ChatNames = maps:filter(fun(_Nm, Clients) ->
+				    lists:member(ClientPID, Clients)
+			    end,
+			    State#serv_st.registrations),
+    io:format("Chat Names to send updatenick to: ~p~n", [maps:keys(ChatNames)]),
+    ChatPIDs = maps:filter(fun(Nm, _PID) -> 
+				   lists:member(Nm, maps:keys(ChatNames))
+			   end, State#serv_st.chatrooms),
+    io:format("Chat PIDS: ~p~n", [maps:values(ChatPIDs)]),
+    Catch = maps:map(fun(_,Chat_PID) ->
+			     io:format("Chat PID TO SEND TO: ~p~n", [Chat_PID]),
+			     Chat_PID!{self(), Ref, upregister, ClientPID},
+			     Chat_PID
+		     end, ChatPIDs),
+    UpdatedRegistrations = maps:map(fun(_Nm, Clients) ->
+					    case lists:member(ClientPID, Clients) of
+						true ->
+						    lists:delete(ClientPID, Clients);
+						false ->
+						    Clients
+					    end
+				    end, State#serv_st.registrations),
+    
+    ClientPID!{self(), Ref, ack_quit},
+    #serv_st{
+       nicks = maps:remove(ClientPID,State#serv_st.nicks), 
+       registrations = UpdatedRegistrations,
+       chatrooms = State#serv_st.chatrooms
+      }.
