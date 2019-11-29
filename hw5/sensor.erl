@@ -3,11 +3,12 @@
 -author("Christina Li and Brenden Brusberg").
 
 sensor(ID, Watcher) ->
-    Measurement = 11,%rand:uniform(11),
+    Measurement =  rand:uniform(11),
     if(Measurement == 11) ->
-	    exit("anomalous_reading");
+	    exit(anomalous_reading);
       true ->
-	    Watcher!{self(),{ID, Measurement}}
+	      Watcher!{self(),{ID, Measurement}}
     end,
     Sleep_time = rand:uniform(10000),
-    timer:sleep(Sleep_time).
+    timer:sleep(Sleep_time),
+    sensor(ID, Watcher).

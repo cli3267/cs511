@@ -4,9 +4,9 @@
 
 watcher(S) ->
   receive 
-    {"DOWN", _, process, Pid2, Reason} ->
-        {SensorID, _} = lists:keyfind(Pid2, N, S), %%% idk what N should be 
-        io:fwrite("Watcher: ~w, Termination Reason: ~w", [self(), Reason]),
+    {'DOWN', _, process, Pid2, Reason} ->
+        {SensorID, _} = lists:keyfind(Pid2, 2, S), %%% idk what N should be 
+        io:fwrite("Watcher: ~w, Termination Reason: ~w~n", [self(), Reason]),
         RemovedSensor = lists:delete({SensorID, Pid2}, S),
         { Pid, _ } = spawn_monitor(sensor, sensor, [SensorID, self()]),
         UpdatedSensor = lists:append([{SensorID, Pid}], RemovedSensor),
