@@ -3,7 +3,7 @@
 -author("Christina Li and Brenden Brusberg").
 
 sensor(ID, Watcher) ->
-    Measurement = rand:uniform(11),
+    Measurement = 11,%rand:uniform(11),
     if(Measurement == 11) ->
 	    exit("anomalous_reading");
       true ->
