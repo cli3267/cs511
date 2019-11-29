@@ -4,13 +4,14 @@
 
 watcher(S) ->
     receive 
-	{"DOWN", _, process, Pid2, {ID, Reason}} ->
-	    io:fwrite("Watcher: ~w, Termination Reason: ~w, Sensor: ~w~n", [self(), Reason, ID]),
-	    RemovedSensor = lists:delete({ID, Pid2}, S),
-	    { Pid, _ } = spawn_monitor(sensor, sensor, [ID, self()]),
-	    UpdatedSensor = lists:append([{ID, Pid}], RemovedSensor),
-	    io:fwrite("Watcher: ~w, Upated Sensors: ~w~n", [self(), UpdatedSensor]),
-	    watcher(UpdatedSensor);
+	{'DOWN', _, process, Pid, anomalous_reading} ->
+	    io:fwrite("Watcher: ~w, Termination Reason: ~w, Sensor: ~w~n", [self(), anomalous_reading, Pid]),
+	    %RemovedSensor = lists:delete({ID, Pid}, S),
+	    %{ Pid, _ } = spawn_monitor(sensor, sensor, [ID, self()]),
+	    %UpdatedSensor = lists:append([{ID, Pid}], RemovedSensor),
+	    %io:fwrite("Watcher: ~w, Upated Sensors: ~w~n", [self(), UpdatedSensor]),
+	    %watcher(UpdatedSensor);
+	    watcher(S);
 	{ID, Measurement} ->
 	    io:fwrite("Sensor: ~w, Measurement: ~w~n", [ID, Measurement]),
 	    watcher(S)
