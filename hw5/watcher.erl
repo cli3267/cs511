@@ -4,18 +4,20 @@
 
 watcher(S) ->
   receive 
-    {'DOWN', _, process, Pid2, Reason} ->
-        {SensorID, _} = lists:keyfind(Pid2, 2, S), %%% idk what N should be 
-        io:fwrite("Watcher: ~w, Termination Reason: ~w~n", [self(), Reason]),
-        RemovedSensor = lists:delete({SensorID, Pid2}, S),
-        { Pid, _ } = spawn_monitor(sensor, sensor, [SensorID, self()]),
-        UpdatedSensor = lists:append([{SensorID, Pid}], RemovedSensor),
-        io:fwrite("Watcher: ~w, Upated Sensors: ~w~n", [self(), UpdatedSensor]),
-        watcher(UpdatedSensor);
-    {ID, Measurement} ->
-        io:fwrite("Sensor: ~w, Measurement: ~w~n", [ID, Measurement]),
-        watcher(S)
-      end.
+	  {'DOWN', _, process, Pid, anomalous_reading} ->
+	    %TODO DELETE ID PID TUPPLE IN LIST THEN GET ID TO START NEW MONITORED SENSOR WITH AND ADD IT BACK TO THE LIST
+      {Sid, _} = lists:keyfind(Pid, 2, S),
+	    io:fwrite("Watcher: ~w, Termination Reason: ~w, Sensor: ~w~n", [self(), anomalous_reading, Sid]),
+      RemovedSensor = lists:delete({Sid, Pid}, S),
+      {Pid2, _} = spawn_monitor(sensor, sensor, [Sid, self()]),
+      io:fwrite("Updated Pid: ~w for Sensor ~w ~n", [Pid2, Sid]),
+      UpdatedSensor = lists:append([{Sid, Pid2}], RemovedSensor),
+      io:fwrite("Watcher: ~w, Upated Sensors: ~w~n", [self(), UpdatedSensor]),
+	    watcher(UpdatedSensor);
+	  {ID, Measurement} ->
+	    io:fwrite("Sensor: ~w, Measurement: ~w~n", [ID, Measurement]),
+	    watcher(S)
+    end.
 
 watcher(N_Start, N_End) ->
     S = lists:map(fun(ID)->
