@@ -19,7 +19,7 @@ watcher(S) ->
 
 watcher(N_Start, N_End) ->
     io:fwrite("PID ~w~n", [self()]),
-    S = lists:apply(fun(ID)->
+    S = lists:map(fun(ID)->
 			    {Pid, _} = spawn_monitor(sensor, sensor, [ID, self()]),
 			    {ID, Pid} end
 		   , lists:seq(N_Start,N_End)),
