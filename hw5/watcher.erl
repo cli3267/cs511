@@ -3,18 +3,19 @@
 -author("Christina Li and Brenden Brusberg").
 
 watcher(S) ->
-    receive 
-	{"DOWN", _, process, Pid2, {ID, Reason}} ->
-	    io:fwrite("Watcher: ~w, Termination Reason: ~w, Sensor: ~w~n", [self(), Reason, ID]),
-	    RemovedSensor = lists:delete({ID, Pid2}, S),
-	    { Pid, _ } = spawn_monitor(sensor, sensor, [ID, self()]),
-	    UpdatedSensor = lists:append([{ID, Pid}], RemovedSensor),
-	    io:fwrite("Watcher: ~w, Upated Sensors: ~w~n", [self(), UpdatedSensor]),
-	    watcher(UpdatedSensor);
-	{ID, Measurement} ->
-	    io:fwrite("Sensor: ~w, Measurement: ~w~n", [ID, Measurement]),
-	    watcher(S)
-    end.
+  receive 
+    {"DOWN", _, process, Pid2, Reason} ->
+        {SensorID, _} = lists:keyfind(Pid2, N, S), %%% idk what N should be 
+        io:fwrite("Watcher: ~w, Termination Reason: ~w", [self(), Reason]),
+        RemovedSensor = lists:delete({SensorID, Pid2}, S),
+        { Pid, _ } = spawn_monitor(sensor, sensor, [SensorID, self()]),
+        UpdatedSensor = lists:append([{SensorID, Pid}], RemovedSensor),
+        io:fwrite("Watcher: ~w, Upated Sensors: ~w~n", [self(), UpdatedSensor]),
+        watcher(UpdatedSensor);
+    {ID, Measurement} ->
+        io:fwrite("Sensor: ~w, Measurement: ~w~n", [ID, Measurement]),
+        watcher(S)
+      end.
 
 watcher(N_Start, N_End) ->
     S = lists:map(fun(ID)->
